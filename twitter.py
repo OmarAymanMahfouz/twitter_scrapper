@@ -4,6 +4,7 @@ from utilities import *
 from time import sleep
 import pickle
 import pymongo
+from selenium.webdriver.common.by import By
 
 id
 
@@ -51,7 +52,7 @@ def get_new_home_tweets(driver):
         # infinite_scroll(driver, 1)
         driver.get(twitter_url)
         sleep(7)
-        elems = driver.find_elements('class name',"css-901oao.r-18jsvk2.r-1k78y06.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0.r-1vmecro")#driver.find_elements('class name', 'css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0')
+        elems = driver.find_elements(By.CLASS_NAME,"css-901oao.r-18jsvk2.r-1k78y06.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0.r-1vmecro")#driver.find_elements('class name', 'css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0')
 
 
         for elem in elems:
@@ -86,7 +87,7 @@ def get_tweets(driver, search_key_dic):
         sleep(7)
         
         while nofTweets > 0:
-            elems = driver.find_elements('css selector','div[class="css-901oao r-18jsvk2 r-1k78y06 r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0 r-1vmecro"]')
+            elems = driver.find_elements(By.CSS_SELECTOR,'div[class="css-901oao r-18jsvk2 r-1k78y06 r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0 r-1vmecro"]')
 
             for elem in elems:
                 try:
