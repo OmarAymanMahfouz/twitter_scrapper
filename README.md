@@ -1,5 +1,5 @@
 # Twitter_Scrapper
-this project is an automated Twitter account which allows you to fetch new tweets from home page or tweets of a given profile or hashtag.
+This project is an automated Twitter account which allows you to fetch new tweets from home page or tweets of a given profile or hashtag.
 
 #Automate Your Own Account
 ==========================
