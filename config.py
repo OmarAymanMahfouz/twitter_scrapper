@@ -8,8 +8,8 @@ page_load_timeout = 30
 
 twitter_url = 'https://twitter.com/home'
 twitter_login_page = 'https://twitter.com/login'
-twitter_email = 'omr.a.ms2022@gmail.com'
-twitter_password = 'Soft_123'
+twitter_email = ''
+twitter_password = ''
 twitter_cookies_path = 'twitter_cookies.pkl'
 
 NofScrollingTries = 20
