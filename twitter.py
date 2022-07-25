@@ -1,3 +1,4 @@
+from sqlalchemy import true
 from config import *
 from utilities import *
 
@@ -6,35 +7,12 @@ import pickle
 import pymongo
 from selenium.webdriver.common.by import By
 
-id
-
-def infinite_scroll(driver):
-    last_height = driver.execute_script("return document.body.scrollHeight")
-    Noftries = 0
-    while Noftries < 3:
-        try:
-            driver.execute_script("window.scrollBy(0, 5000);")#("window.scrollTo(0, document.body.scrollHeight);")
-            
-            sleep (4)
-
-            new_height = driver.execute_script("return document.body.scrollHeight")
-            
-            if new_height == last_height:
-                Noftries += 1
-            else:
-                return False
-        except:
-            pass
-
-    return True
-
-
-def checkHeader(Header):
+def checkTweetId(TweetId):
     myClient = pymongo.MongoClient("mongodb://localHost:27017")
     myDatabase = myClient['Twitter']
     myCollection = myDatabase['Articles']
 
-    x = myCollection.find_one({"Header": Header})
+    x = myCollection.find_one({"ArticlID": TweetId})
     if x is None:
         return False
     
@@ -47,28 +25,9 @@ def WriteResult(post):
 
     myCollection.insert_one(post)
 
-def get_new_home_tweets(driver):
-    while True:
-        # infinite_scroll(driver, 1)
-        driver.get(twitter_url)
-        sleep(7)
-        elems = driver.find_elements(By.CLASS_NAME,"css-901oao.r-18jsvk2.r-1k78y06.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0.r-1vmecro")#driver.find_elements('class name', 'css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0')
 
-
-        for elem in elems:
-            try:
-                if checkHeader(elem.text):
-                    continue
-                js = {}
-                js['Header'] = elem.text
-                js['ArticlID'] = id
-                WriteResult(js)
-                id += 1
-            except:
-                pass
 
 def get_tweets(driver, search_key_dic):
-    global id
 
     for key in search_key_dic:
         url = "https://twitter.com/"
@@ -86,56 +45,61 @@ def get_tweets(driver, search_key_dic):
         driver.get(url)
         sleep(7)
         
+        TriesCounter = 0
         while nofTweets > 0:
-            elems = driver.find_elements(By.CSS_SELECTOR,'div[class="css-901oao r-18jsvk2 r-1k78y06 r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0 r-1vmecro"]')
+            tweets = driver.find_elements(By.CSS_SELECTOR, 'div[class="css-901oao r-18jsvk2 r-1k78y06 r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0 r-1vmecro"]')#driver.find_elements_by_css_selector('div[class="css-901oao r-18jsvk2 r-1k78y06 r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-bnwqim r-qvutc0 r-1vmecro"]')
+            linkes = driver.find_elements(By.CSS_SELECTOR, 'a[class="css-4rbku5 css-18t94o4 css-901oao r-14j79pv r-1loqt21 r-1q142lx r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0"]')#driver.find_elements_by_css_selector('a[class="css-4rbku5 css-18t94o4 css-901oao r-14j79pv r-1loqt21 r-1q142lx r-37j5jr r-a023e6 r-16dba41 r-rjixqe r-bcqeeo r-3s2u2q r-qvutc0"]')
 
-            for elem in elems:
+            for (tweet, link) in zip(tweets, linkes):
                 try:
-                    if checkHeader(elem.text): #can be removed 
+                    tweet_link = str(link.get_property('href')).split('/')
+                    tweet_id = int(tweet_link[-1])
+
+                    if checkTweetId(tweet_id):
                         continue
 
                     js = {}
-                    js['Header'] = elem.text
-                    js['ArticlID'] = id
+                    js['Header'] = tweet.text
+                    js['ArticlID'] = tweet_id
                     WriteResult(js)
 
-                    id += 1
                     nofTweets -= 1
+                    TriesCounter = 0
+
 
                     if nofTweets <= 0:
+                        print (str(key) + " has Terminated due to nof spcified tweets has been reached")
                         break
                 except:
                     pass
 
-            if infinite_scroll(driver= driver):
+
+            driver.execute_script("window.scrollBy(0, 1500);")
+            sleep(3)
+
+            endOfPage = driver.find_elements(By.XPATH, "//div[@class='css-1dbjc4n r-o52ifk']//div[@class='css-1dbjc4n r-o52ifk']")#driver.find_elements_by_xpath("//div[@class='css-1dbjc4n r-o52ifk']//div[@class='css-1dbjc4n r-o52ifk']")
+            if len(endOfPage) > 0 and TriesCounter == NofScrollingTries:
+                print (str(key) + " has Terminated due to no more scrolling")
                 break
-            sleep(2)
-        pass
+            elif len(endOfPage) > 0:
+                TriesCounter += 1
 
-
-
-def get_posts_count():
-    myClient = pymongo.MongoClient("mongodb://localHost:27017")
-    myDatabase = myClient['Twitter']
-    myCollection = myDatabase['Articles']
-
-    return myCollection.count_documents({})
 
 if __name__=="__main__":
-    id = 700 * 1000 * 1000 + get_posts_count()
     driver = init_driver(gecko_driver, user_agent=user_agent, is_headless=headless)
-    
+
     # login to your account
     is_login = load_cookies(driver)
     if is_login == False:
         # twitter_login(driver)\
         driver.get(twitter_login_page)
+        
         sleep(2)
         pickle.dump(driver.get_cookies(), open(file=f".\\twitter_cookies.pkl", mode="wb"))
-    
+        
     search_key_dic = [
-        {"search_key": f"AlghadNews", "nofTweets": 500}, 
-        {"search_key": f"skynewsarabia", "nofTweets": 500}
+        {"search_key": f"#صدى_البلد", "nofTweets": 1000},
+        {"search_key": f"ElBaladOfficial", "nofTweets": 500}        
     ]
 
     get_tweets(driver, search_key_dic)

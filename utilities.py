@@ -2,13 +2,8 @@ from config import *
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.by import By
-
 import os
 from time import sleep
-from math import ceil
-from datetime import datetime
-from pathlib import Path
 import json
 import pickle
 
@@ -43,7 +38,7 @@ def get_url(page_url, driver):
     
     sleep(page_load_timeout)
     
-    close_popup = driver.find_elements(By.CSS_SELECTOR,'.-close_popup')
+    close_popup = driver.find_elements_by_css_selector('.-close_popup')
     if len(close_popup) > 0:
         close_popup[0].click()
         
@@ -64,8 +59,7 @@ def load_cookies(driver):
         with cookie_file as f:
             unpickler = pickle.Unpickler(f)
             cookies = unpickler.load()
-            # if not isinstance(cookies, dict):
-            #     cookies = {}
+
     except Exception as e:
         print(str(e))
         return False
@@ -80,7 +74,7 @@ def load_cookies(driver):
     sleep(2)
     
     driver.get(f"{twitter_url}/settings/account")
-    if len(driver.find_elements(By.CLASS_NAME,'r-30o5oe.r-1niwhzg.r-17gur6a.r-1yadl64.r-deolkf.r-homxoj.r-poiln3.r-7cikom.r-1ny4l3l.r-t60dpp.r-1dz5y72.r-fdjqy7.r-13qz1uu')) > 0:
+    if len(driver.find_elements_by_class_name('r-30o5oe.r-1niwhzg.r-17gur6a.r-1yadl64.r-deolkf.r-homxoj.r-poiln3.r-7cikom.r-1ny4l3l.r-t60dpp.r-1dz5y72.r-fdjqy7.r-13qz1uu')) > 0:
         _ = open(cookie_file, 'w').truncate()
         return False
     else:
@@ -89,9 +83,9 @@ def load_cookies(driver):
 def twitter_login(driver):
     driver.get(twitter_login_page)
     
-    if len(driver.find_elements(By.CSS_SELECTOR,'input.js-username-field')) > 0 and len(driver.find_elements(By.CSS_SELECTOR,'input.js-password-field')) > 0:
-        email = driver.find_elements(By.CSS_SELECTOR, 'input.js-username-field')[0]
-        password = driver.find_elements(By.CSS_SELECTOR, 'input.js-password-field')[0]
+    if len(driver.find_elements_by_css_selector('input.js-username-field')) > 0 and len(driver.find_elements_by_css_selector('input.js-password-field')) > 0:
+        email = driver.find_elements_by_css_selector('input.js-username-field')[0]
+        password = driver.find_elements_by_css_selector('input.js-password-field')[0]
 
         email.clear()
         password.clear()
@@ -100,7 +94,7 @@ def twitter_login(driver):
         password.send_keys( twitter_password )
 
         sleep(3)
-        login_btn = driver.find_elements(By.CSS_SELECTOR,'button[type="submit"]')[0].click()
+        login_btn = driver.find_elements_by_css_selector('button[type="submit"]')[0].click()
 
         sleep(5)
         cookies_list = driver.get_cookies()
